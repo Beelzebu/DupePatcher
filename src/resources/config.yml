@@ -1,0 +1,11 @@
+# DupePatcher plugin by: Beelzebu
+# If you need support or find a bug open a issuse in
+# the official github repo https://github.com/Beelzebu/DupePatcher/issues/
+
+# The version of the config, don't touch!
+version: 1
+
+# Settings related to duplication with portals
+PortalFix:
+  # While strict mode is enabled only players can be teleported though portals.
+  Strict Mode: true
