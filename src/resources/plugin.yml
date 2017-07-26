@@ -1,0 +1,4 @@
+name: DupePatcher
+main: net.nifheim.beelzebu.dupepatcher.Main
+version: ${project.version}
+author: Beelzebu

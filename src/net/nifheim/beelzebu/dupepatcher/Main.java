@@ -78,8 +78,6 @@ public class Main extends JavaPlugin implements Listener {
         console.sendMessage("    §c| §4DupePatcher §fBy: §7§cBeelzebu |");
         console.sendMessage("    §c|--------------------------|");
         console.sendMessage("    §c|         §4v:§f" + getDescription().getVersion() + "          §c|");
-        console.sendMessage("    §c|--------------------------|");
-        console.sendMessage("    §c|          §aEnabled           |");
         console.sendMessage("    §c+==========================+");
         console.sendMessage(" ");
     }
@@ -91,8 +89,6 @@ public class Main extends JavaPlugin implements Listener {
         console.sendMessage("    §c| §4DupePatcher §fBy: §7§cBeelzebu |");
         console.sendMessage("    §c|--------------------------|");
         console.sendMessage("    §c|         §4v:§f" + getDescription().getVersion() + "          §c|");
-        console.sendMessage("    §c|--------------------------|");
-        console.sendMessage("    §c|          §aEnabled           |");
         console.sendMessage("    §c+==========================+");
         console.sendMessage(" ");
     }
