@@ -169,4 +169,17 @@ public class Main extends JavaPlugin implements Listener {
             }
         }
     }
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onPortal(EntityPortalEvent e) {
+        if (!e.isCancelled()) {
+            if (getConfig().getBoolean("PortalFix.Strict Mode")) {
+                if (!e.getEntityType().equals(EntityType.PLAYER)) {
+                    e.setCancelled(true);
+                }
+            } else if (e.getEntityType().equals(EXPERIENCE_ORB)) {
+                e.setCancelled(true);
+            }
+        }
+    }
 }
