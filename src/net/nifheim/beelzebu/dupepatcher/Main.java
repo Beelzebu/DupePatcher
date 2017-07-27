@@ -150,15 +150,15 @@ public class Main extends JavaPlugin implements Listener {
     @EventHandler
     public void onMove(PlayerMoveEvent e) {
         if (cant.contains(e.getPlayer())) {
-            InventoryView inv = e.getPlayer().getOpenInventory();
-            if (inv.getType().equals(InventoryType.CRAFTING) || inv.getType().equals(InventoryType.WORKBENCH) || (e.getPlayer().getVehicle() != null && e.getPlayer().getVehicle().getType().equals(EntityType.PIG))) {
-                e.getPlayer().getOpenInventory().close();
-            }
             Location from = e.getFrom();
             Location to = e.getTo();
             if (from.getBlockX() != to.getBlockX() || from.getBlockZ() != to.getBlockZ()) {
+                InventoryView inv = e.getPlayer().getOpenInventory();
+                if (inv.getType().equals(InventoryType.CRAFTING) || inv.getType().equals(InventoryType.WORKBENCH) || (e.getPlayer().getVehicle() != null && e.getPlayer().getVehicle().getType().equals(EntityType.PIG))) {
+                    e.getPlayer().getOpenInventory().close();
+                }
                 int i = new Random().nextInt(40);
-                while (i < 15) {
+                while (i < 20) {
                     return;
                 }
                 Bukkit.getScheduler().runTaskLaterAsynchronously(this, () -> {
@@ -166,19 +166,6 @@ public class Main extends JavaPlugin implements Listener {
                         cant.remove(Bukkit.getPlayer(e.getPlayer().getName()));
                     }
                 }, i);
-            }
-        }
-    }
-
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-    public void onPortal(EntityPortalEvent e) {
-        if (!e.isCancelled()) {
-            if (getConfig().getBoolean("PortalFix.Strict Mode")) {
-                if (!e.getEntityType().equals(EntityType.PLAYER)) {
-                    e.setCancelled(true);
-                }
-            } else if (e.getEntityType().equals(EXPERIENCE_ORB)) {
-                e.setCancelled(true);
             }
         }
     }
