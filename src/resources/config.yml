@@ -3,9 +3,12 @@
 # the official github repo https://github.com/Beelzebu/DupePatcher/issues/
 
 # The version of the config, don't touch!
-version: 1
+version: 2
 
 # Settings related to duplication with portals
 PortalFix:
   # While strict mode is enabled only players can be teleported though portals.
   Strict Mode: true
+
+# Remove invalid stacks, for example a stack of 64 eggs(16) or 64 shulker box(1).
+Remove overstacked: true

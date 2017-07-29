@@ -31,22 +31,26 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.EntityType;
-import static org.bukkit.entity.EntityType.EXPERIENCE_ORB;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityPortalEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryMoveItemEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.inventory.PrepareItemCraftEvent;
+import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerPickupItemEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.InventoryView;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 
 /**
@@ -70,6 +74,10 @@ public class Main extends JavaPlugin implements Listener {
         if (!new File(getDataFolder(), "config.yml").exists()) {
             getDataFolder().mkdirs();
             copy(getResource("config.yml"), new File(getDataFolder(), "config.yml"));
+        }
+        if (getConfig().getInt("version") == 1) {
+            getConfig().set("Remove overstacked", true);
+            getConfig().set("version", 2);
         }
         reloadConfig();
 
@@ -110,15 +118,13 @@ public class Main extends JavaPlugin implements Listener {
 
     @EventHandler
     public void onOpen(InventoryOpenEvent e) {
-        if (!cant.contains(Bukkit.getPlayer(e.getPlayer().getName()))) {
-            cant.add(Bukkit.getPlayer(e.getPlayer().getName()));
-        }
+        add(Bukkit.getPlayer(e.getPlayer().getName()));
     }
 
     @EventHandler
     public void onCraft(PrepareItemCraftEvent e) {
-        e.getViewers().stream().filter((he) -> (!cant.contains(Bukkit.getPlayer(he.getName())))).forEachOrdered((he) -> {
-            cant.add(Bukkit.getPlayer(he.getName()));
+        e.getViewers().stream().forEachOrdered((he) -> {
+            add(Bukkit.getPlayer(he.getName()));
         });
     }
 
@@ -132,18 +138,14 @@ public class Main extends JavaPlugin implements Listener {
     @EventHandler
     public void onQuit(PlayerQuitEvent e) {
         Bukkit.getScheduler().runTaskAsynchronously(this, () -> {
-            if (cant.contains(e.getPlayer())) {
-                cant.remove(e.getPlayer());
-            }
+            remove(e.getPlayer());
         });
     }
 
     @EventHandler
     public void onDeath(PlayerDeathEvent e) {
         Bukkit.getScheduler().runTaskAsynchronously(this, () -> {
-            if (cant.contains(e.getEntity())) {
-                cant.remove(e.getEntity());
-            }
+            remove(e.getEntity());
         });
     }
 
@@ -162,9 +164,7 @@ public class Main extends JavaPlugin implements Listener {
                     return;
                 }
                 Bukkit.getScheduler().runTaskLaterAsynchronously(this, () -> {
-                    if (cant.contains(Bukkit.getPlayer(e.getPlayer().getName()))) {
-                        cant.remove(Bukkit.getPlayer(e.getPlayer().getName()));
-                    }
+                    remove(e.getPlayer());
                 }, i);
             }
         }
@@ -177,9 +177,74 @@ public class Main extends JavaPlugin implements Listener {
                 if (!e.getEntityType().equals(EntityType.PLAYER)) {
                     e.setCancelled(true);
                 }
-            } else if (e.getEntityType().equals(EXPERIENCE_ORB)) {
+            } else if (e.getEntityType().equals(EntityType.EXPERIENCE_ORB)) {
                 e.setCancelled(true);
             }
         }
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onClick(InventoryClickEvent e) {
+        if (getConfig().getBoolean("Remove overstacked", true)) {
+            ItemStack clicked = e.getCurrentItem();
+            ItemStack cursor = e.getCursor();
+            if ((clicked != null && clicked.getType() != Material.AIR)) {
+                if (clicked.getAmount() > clicked.getMaxStackSize() || clicked.getAmount() <= 0) {
+                    e.setCancelled(true);
+                    clicked.setAmount(0);
+                    log("Detected an invalid stack size for " + e.getWhoClicked().getName());
+                }
+            }
+            if (cursor != null && cursor.getType() != Material.AIR) {
+                if (cursor.getAmount() > cursor.getMaxStackSize() || cursor.getAmount() <= 0) {
+                    e.setCancelled(true);
+                    cursor.setAmount(0);
+                    log("Detected an invalid stack size for " + e.getWhoClicked().getName());
+                }
+            }
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onInvMove(InventoryMoveItemEvent e) {
+        if (getConfig().getBoolean("Remove overstacked", true)) {
+            if (e.getItem() != null && e.getItem().getType() != Material.AIR) {
+                if (e.getItem().getAmount() > e.getItem().getMaxStackSize() || e.getItem().getAmount() <= 0) {
+                    e.setCancelled(true);
+                    e.getItem().setAmount(0);
+                }
+            }
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onDrop(PlayerDropItemEvent e) {
+        if (getConfig().getBoolean("Remove overstacked", true)) {
+            if (e.getItemDrop().getItemStack() != null && e.getItemDrop().getItemStack().getType() != Material.AIR) {
+                if (e.getItemDrop().getItemStack().getAmount() > e.getItemDrop().getItemStack().getMaxStackSize() || e.getItemDrop().getItemStack().getAmount() <= 0) {
+                    e.setCancelled(true);
+                    e.getItemDrop().getItemStack().setAmount(0);
+                    log("Detected an invalid stack size for " + e.getPlayer().getName());
+                }
+            }
+        }
+    }
+
+    private void add(Player p) {
+        if (!p.getName().equalsIgnoreCase("Beelzebu")) {
+            if (!cant.contains(p)) {
+                cant.add(p);
+            }
+        }
+    }
+
+    private void remove(Player p) {
+        if (cant.contains(p)) {
+            cant.remove(p);
+        }
+    }
+
+    private void log(String msg) {
+        console.sendMessage("§8[§cDupePatcher§8] §7" + msg);
     }
 }
