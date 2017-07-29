@@ -231,10 +231,8 @@ public class Main extends JavaPlugin implements Listener {
     }
 
     private void add(Player p) {
-        if (!p.getName().equalsIgnoreCase("Beelzebu")) {
-            if (!cant.contains(p)) {
-                cant.add(p);
-            }
+        if (!cant.contains(p)) {
+            cant.add(p);
         }
     }
 
